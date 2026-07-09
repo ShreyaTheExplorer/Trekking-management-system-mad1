@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <h2 class="mb-4 text-center">Login</h2>
+
+    <form method="POST" novalidate class="role-tabs">
+      {{ form.hidden_tag() }}
+
+      <!--
+        CSS-only tab toggle: the three radios below are visually hidden,
+        their <label>s act as tab buttons, and the panels further down are
+        shown/hidden purely via the :checked ~ sibling selector in
+        static/css/style.css. No JavaScript involved.
+      -->
+      <input type="radio" id="role-admin" name="role" value="admin"
+             {% if form.role.data == "admin" %}checked{% endif %}>
+      <label for="role-admin" class="tab-label">Admin</label>
+
+      <input type="radio" id="role-staff" name="role" value="staff"
+             {% if form.role.data == "staff" %}checked{% endif %}>
+      <label for="role-staff" class="tab-label">Trek Staff</label>
+
+      <input type="radio" id="role-trekker" name="role" value="trekker"
+             {% if not form.role.data or form.role.data == "trekker" %}checked{% endif %}>
+      <label for="role-trekker" class="tab-label">Trekker</label>
+
+      <div class="tab-panel panel-admin">
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          {{ form.admin_username(class="form-control") }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          {{ form.admin_password(class="form-control") }}
+        </div>
+      </div>
+
+      <div class="tab-panel panel-staff">
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          {{ form.staff_username(class="form-control") }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          {{ form.staff_password(class="form-control") }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Staff ID</label>
+          {{ form.staff_id(class="form-control") }}
+          <div class="form-text">Issued by the admin once your registration is approved.</div>
+        </div>
+      </div>
+
+      <div class="tab-panel panel-trekker">
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          {{ form.trekker_username(class="form-control") }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          {{ form.trekker_password(class="form-control") }}
+        </div>
+      </div>
+
+      {{ form.submit(class="btn btn-success w-100 mt-2") }}
+    </form>
+
+    <div class="text-center mt-3">
+      <a href="{{ url_for('auth.register') }}">Create an account</a> ·
+      <a href="{{ url_for('auth.check_status') }}">Check staff approval status</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

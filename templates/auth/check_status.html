@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Check Approval Status{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <h2 class="mb-4">Check Staff Approval Status</h2>
+    <form method="POST" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="mb-3">
+        {{ form.identifier(class="form-control", placeholder="Username or email") }}
+      </div>
+      {{ form.submit(class="btn btn-success") }}
+    </form>
+
+    {% if result %}
+      <div class="mt-4">
+        {% if not result.found %}
+          <div class="alert alert-warning">No staff registration found for that username/email.</div>
+        {% elif result.status == "pending" %}
+          <div class="alert alert-info">Your registration is still pending admin approval.</div>
+        {% elif result.status == "rejected" %}
+          <div class="alert alert-danger">Your staff registration was rejected.</div>
+        {% elif result.status == "approved" %}
+          <div class="alert alert-success">
+            You're approved! Your Staff ID is <strong>{{ result.staff_id }}</strong> —
+            use it along with your username and password to log in.
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="text-center mt-3">
+      <a href="{{ url_for('auth.login') }}">Back to login</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

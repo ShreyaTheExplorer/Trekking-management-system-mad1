@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <h2 class="mb-4">Create an account</h2>
+    <form method="POST" novalidate>
+      {{ form.hidden_tag() }}
+
+      <div class="mb-3">
+        <label class="form-label">{{ form.role.label }}</label>
+        {{ form.role(class="form-select") }}
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">{{ form.username.label }}</label>
+          {{ form.username(class="form-control") }}
+          {% for e in form.username.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">{{ form.email.label }}</label>
+          {{ form.email(class="form-control") }}
+          {% for e in form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">{{ form.full_name.label }}</label>
+          {{ form.full_name(class="form-control") }}
+          {% for e in form.full_name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">{{ form.phone.label }}</label>
+          {{ form.phone(class="form-control") }}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">{{ form.password.label }}</label>
+          {{ form.password(class="form-control") }}
+          {% for e in form.password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">{{ form.confirm_password.label }}</label>
+          {{ form.confirm_password(class="form-control") }}
+          {% for e in form.confirm_password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+
+      <fieldset class="border rounded p-3 mb-3">
+        <legend class="fs-6">Only fill these in if registering as Trek Staff</legend>
+        <div class="mb-3">
+          <label class="form-label">{{ form.bio.label }}</label>
+          {{ form.bio(class="form-control", rows="2") }}
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">{{ form.experience_years.label }}</label>
+            {{ form.experience_years(class="form-control") }}
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">{{ form.certification.label }}</label>
+            {{ form.certification(class="form-control") }}
+          </div>
+        </div>
+      </fieldset>
+
+      {{ form.submit(class="btn btn-success") }}
+      <a href="{{ url_for('auth.login') }}" class="btn btn-link">Already have an account? Log in</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
