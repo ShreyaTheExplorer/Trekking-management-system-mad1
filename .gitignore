@@ -1,0 +1,22 @@
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environments
+.env
+.env.local
+.env.*
+venv/
+ENV/
+env/
+
+# Databases & local instances
+instance/
+app.db
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db

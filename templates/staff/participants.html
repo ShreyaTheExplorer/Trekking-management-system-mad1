@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Participants — {{ trek.name }}{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">{{ trek.name }} — Participants</h2>
+  <a href="{{ url_for('staff.dashboard') }}" class="btn btn-outline-secondary">← Dashboard</a>
+</div>
+
+{# ── Summary cards ── #}
+{% set booked_list  = bookings | selectattr('status', 'equalto', 'Booked')    | list %}
+{% set done_list    = bookings | selectattr('status', 'equalto', 'Completed') | list %}
+{% set cancel_list  = bookings | selectattr('status', 'equalto', 'Cancelled') | list %}
+
+<div class="row g-3 mb-4">
+  <div class="col-sm-3">
+    <div class="card text-white bg-success text-center py-3">
+      <div class="fs-1 fw-bold">{{ booked_list | length }}</div>
+      <div class="small">Active Bookings</div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card text-white bg-dark text-center py-3">
+      <div class="fs-1 fw-bold">{{ done_list | length }}</div>
+      <div class="small">Completed</div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card bg-light text-center py-3">
+      <div class="fs-1 fw-bold">{{ cancel_list | length }}</div>
+      <div class="small">Cancelled</div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card text-white bg-secondary text-center py-3">
+      <div class="fs-1 fw-bold">{{ trek.available_slots }}</div>
+      <div class="small">Slots Remaining</div>
+    </div>
+  </div>
+</div>
+
+{# ── Participant table ── #}
+{% if bookings %}
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>People</th>
+        <th>Booked On</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in bookings %}
+      {% if b.status == 'Booked' %}
+        {% set row_class = '' %}
+        {% set badge_class = 'bg-success' %}
+      {% elif b.status == 'Completed' %}
+        {% set row_class = 'table-light' %}
+        {% set badge_class = 'bg-dark' %}
+      {% else %}
+        {% set row_class = 'text-muted' %}
+        {% set badge_class = 'bg-secondary' %}
+      {% endif %}
+      <tr class="{{ row_class }}">
+        <td class="text-muted small">{{ loop.index }}</td>
+        <td><strong>{{ b.user.full_name }}</strong></td>
+        <td>{{ b.user.email }}</td>
+        <td>{{ b.user.phone or '—' }}</td>
+        <td>{{ b.num_people }}</td>
+        <td class="small">{{ b.booking_date.strftime('%d %b %Y') }}</td>
+        <td><span class="badge {{ badge_class }}">{{ b.status }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <p class="text-center text-muted py-5">No bookings yet for this trek.</p>
+{% endif %}
+
+{% endblock %}

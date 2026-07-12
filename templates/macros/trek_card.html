@@ -1,0 +1,47 @@
+{% macro render_trek_card(trek) %}
+<div class="card h-100 trek-card border-0 shadow-sm overflow-hidden position-relative">
+  <div class="position-relative">
+    <img src="{{ trek.cover_image or url_for('static', filename='images/default_trek.jpg') }}" 
+         class="card-img-top" 
+         alt="{{ trek.name }}" 
+         style="height: 200px; object-fit: cover;">
+    
+    {# Difficulty Badge #}
+    <span class="badge position-absolute top-0 end-0 m-3 {% if trek.difficulty == 'Easy' %}bg-success{% elif trek.difficulty == 'Moderate' %}bg-warning text-dark{% else %}bg-danger{% endif %} shadow-sm">
+      {{ trek.difficulty }}
+    </span>
+  </div>
+  <div class="card-body d-flex flex-column p-4">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <h5 class="card-title text-success mb-0 fw-bold">{{ trek.name }}</h5>
+    </div>
+    
+    <p class="text-muted small mb-3">
+      <i class="bi bi-geo-alt-fill text-success me-1"></i>{{ trek.location }}
+    </p>
+    
+    <div class="mb-3 d-flex gap-2">
+      <span class="badge bg-light text-success border border-success-subtle px-2 py-1.5 fw-semibold">{{ trek.duration_days }} Days</span>
+      {% if trek.season %}
+        <span class="badge bg-light text-primary border border-primary-subtle px-2 py-1.5 fw-semibold">{{ trek.season }}</span>
+      {% endif %}
+    </div>
+
+    <p class="text-secondary small mb-4 text-truncate-2">
+      {{ trek.description or "Embark on a breathtaking journey through pristine landscapes, beautiful trails, and unforgettable vistas." }}
+    </p>
+
+    <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+      <div>
+        <span class="text-muted small d-block">Available Slots</span>
+        <span class="fw-bold {% if trek.available_slots == 0 %}text-danger{% else %}text-dark{% endif %}">
+          {{ trek.available_slots }} / {{ trek.total_slots }}
+        </span>
+      </div>
+      <a href="{{ url_for('user.trek_detail', trek_id=trek.id) }}" class="btn btn-success btn-sm px-3 rounded-pill fw-semibold shadow-sm">
+        View Trek
+      </a>
+    </div>
+  </div>
+</div>
+{% endmacro %}

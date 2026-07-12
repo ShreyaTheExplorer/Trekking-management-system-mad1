@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Staff Members{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Staff Members</h2>
+  <a href="{{ url_for('admin.pending_staff') }}" class="btn btn-warning btn-sm">Pending Approvals</a>
+</div>
+
+{# Search #}
+<form method="GET" class="d-flex gap-2 mb-3">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by name or username…"
+         class="form-control" style="max-width:360px">
+  <button class="btn btn-outline-secondary" type="submit">Search</button>
+  {% if q %}<a href="{{ url_for('admin.list_staff') }}" class="btn btn-outline-danger">Clear</a>{% endif %}
+</form>
+
+{% set users = pagination.items %}
+{% if users %}
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>Name</th><th>Username</th><th>Email</th><th>Staff ID</th>
+        <th>Status</th><th>Trek Assigned</th><th>Blacklisted</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      {# Set row-level variables to avoid nested-quote issues in attributes #}
+      {% if u.is_blacklisted %}
+        {% set row_class = "table-danger" %}
+        {% set btn_label = "Reinstate" %}
+        {% set btn_class = "btn-outline-success" %}
+      {% else %}
+        {% set row_class = "" %}
+        {% set btn_label = "Blacklist" %}
+        {% set btn_class = "btn-outline-danger" %}
+      {% endif %}
+
+      {% if u.staff_profile %}
+        {% set approval = u.staff_profile.approval_status %}
+        {% if approval == "approved" %}
+          {% set badge_class = "success" %}
+        {% elif approval == "pending" %}
+          {% set badge_class = "warning text-dark" %}
+        {% else %}
+          {% set badge_class = "danger" %}
+        {% endif %}
+      {% endif %}
+
+      <tr class="{{ row_class }}">
+        <td><strong>{{ u.full_name }}</strong></td>
+        <td class="text-muted">{{ u.username }}</td>
+        <td>{{ u.email }}</td>
+        <td>
+          {% if u.staff_profile and u.staff_profile.staff_id %}
+            <code>{{ u.staff_profile.staff_id }}</code>
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          {% if u.staff_profile %}
+            <span class="badge bg-{{ badge_class }}">
+              {{ u.staff_profile.approval_status | capitalize }}
+            </span>
+          {% else %}—{% endif %}
+        </td>
+        <td class="small">
+          {% if u.staff_profile and u.staff_profile.treks_assigned %}
+            {% for t in u.staff_profile.treks_assigned %}
+              <div>{{ t.name }}</div>
+            {% endfor %}
+          {% else %}
+            <span class="text-muted">None</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if u.is_blacklisted %}
+            <span class="badge bg-danger">Yes</span>
+          {% else %}
+            <span class="badge bg-secondary">No</span>
+          {% endif %}
+        </td>
+        <td>
+          <form method="POST" action="{{ url_for('admin.blacklist_staff', user_id=u.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm {{ btn_class }}">{{ btn_label }}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# Pagination #}
+{% if pagination.pages > 1 %}
+<nav>
+  <ul class="pagination">
+    <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+      <a class="page-link" href="{{ url_for('admin.list_staff', page=pagination.prev_num, q=q) }}">‹ Prev</a>
+    </li>
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% if p %}
+        <li class="page-item {{ 'active' if p == pagination.page }}">
+          <a class="page-link" href="{{ url_for('admin.list_staff', page=p, q=q) }}">{{ p }}</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+      {% endif %}
+    {% endfor %}
+    <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+      <a class="page-link" href="{{ url_for('admin.list_staff', page=pagination.next_num, q=q) }}">Next ›</a>
+    </li>
+  </ul>
+</nav>
+{% endif %}
+
+{% else %}
+  <p class="text-muted py-4 text-center">
+    {% if q %}No staff matching "{{ q }}".{% else %}No staff registered yet.{% endif %}
+  </p>
+{% endif %}
+
+{% endblock %}

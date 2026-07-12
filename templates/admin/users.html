@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Trekkers{% endblock %}
+{% block content %}
+
+<h2 class="mb-3">Trekkers</h2>
+
+{# Search #}
+<form method="GET" class="d-flex gap-2 mb-3">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by name or username…"
+         class="form-control" style="max-width:360px">
+  <button class="btn btn-outline-secondary" type="submit">Search</button>
+  {% if q %}<a href="{{ url_for('admin.list_users') }}" class="btn btn-outline-danger">Clear</a>{% endif %}
+</form>
+
+{% set users = pagination.items %}
+{% if users %}
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th><th>Name</th><th>Username</th><th>Email</th>
+        <th>Phone</th><th>Joined</th><th>Bookings</th><th>Blacklisted</th><th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      {% if u.is_blacklisted %}{% set row_class = "table-danger" %}{% else %}{% set row_class = "" %}{% endif %}
+      <tr class="{{ row_class }}">
+        <td class="text-muted small">{{ u.id }}</td>
+        <td><strong>{{ u.full_name }}</strong></td>
+        <td class="text-muted">{{ u.username }}</td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.phone or '—' }}</td>
+        <td class="small text-muted">{{ u.created_at.strftime('%d %b %Y') }}</td>
+        <td>
+          {% set booked = u.bookings | selectattr('status','equalto','Booked') | list %}
+          {{ booked | length }} active / {{ u.bookings | length }} total
+        </td>
+        <td>
+          {% if u.is_blacklisted %}
+            <span class="badge bg-danger">Yes</span>
+          {% else %}
+            <span class="badge bg-secondary">No</span>
+          {% endif %}
+        </td>
+        <td>
+          {# Variables set at top of loop to avoid nested-quote errors #}
+          {% if u.is_blacklisted %}
+            {% set btn_label = "Reinstate" %}
+            {% set btn_class = "btn-outline-success" %}
+          {% else %}
+            {% set btn_label = "Blacklist" %}
+            {% set btn_class = "btn-outline-danger" %}
+          {% endif %}
+          <form method="POST" action="{{ url_for('admin.blacklist_user', user_id=u.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm {{ btn_class }}">{{ btn_label }}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# Pagination #}
+{% if pagination.pages > 1 %}
+<nav>
+  <ul class="pagination">
+    <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+      <a class="page-link" href="{{ url_for('admin.list_users', page=pagination.prev_num, q=q) }}">‹ Prev</a>
+    </li>
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% if p %}
+        <li class="page-item {{ 'active' if p == pagination.page }}">
+          <a class="page-link" href="{{ url_for('admin.list_users', page=p, q=q) }}">{{ p }}</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+      {% endif %}
+    {% endfor %}
+    <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+      <a class="page-link" href="{{ url_for('admin.list_users', page=pagination.next_num, q=q) }}">Next ›</a>
+    </li>
+  </ul>
+</nav>
+{% endif %}
+
+{% else %}
+  <p class="text-muted py-4 text-center">
+    {% if q %}No trekkers matching "{{ q }}".{% else %}No trekkers registered yet.{% endif %}
+  </p>
+{% endif %}
+
+{% endblock %}

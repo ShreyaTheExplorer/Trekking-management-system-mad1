@@ -1,5 +1,57 @@
-/* ---- CSS-only role tabs on the login page (no JavaScript) ---- */
+/* ---- Global & Fonts ---- */
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: #f8f9fa;
+  color: #2b303a;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
+main {
+  flex: 1;
+}
+
+/* ---- Color Palette ---- */
+:root {
+  --trek-green-dark: #1e3f20;
+  --trek-green: #2d6a4f;
+  --trek-green-light: #52b788;
+  --trek-accent: #f77f00;
+  --bg-soft: #f4f7f6;
+}
+
+.bg-success {
+  background-color: var(--trek-green) !important;
+}
+
+.bg-success-dark {
+  background-color: var(--trek-green-dark);
+}
+
+.text-success {
+  color: var(--trek-green) !important;
+}
+
+.btn-success {
+  background-color: var(--trek-green);
+  border-color: var(--trek-green);
+}
+.btn-success:hover, .btn-success:focus {
+  background-color: var(--trek-green-dark);
+  border-color: var(--trek-green-dark);
+}
+
+.btn-outline-success {
+  color: var(--trek-green);
+  border-color: var(--trek-green);
+}
+.btn-outline-success:hover, .btn-outline-success:focus {
+  background-color: var(--trek-green);
+  color: #fff;
+}
+
+/* ---- CSS-only role tabs on the login page (no JavaScript) ---- */
 .role-tabs input[type="radio"] {
   position: absolute;
   opacity: 0;
@@ -21,9 +73,9 @@
 .role-tabs input#role-admin:checked + label,
 .role-tabs input#role-staff:checked + label,
 .role-tabs input#role-trekker:checked + label {
-  background: #198754;
+  background: var(--trek-green);
   color: #fff;
-  border-color: #198754;
+  border-color: var(--trek-green);
 }
 
 .role-tabs .tab-panel {
@@ -38,4 +90,79 @@
 .role-tabs input#role-staff:checked ~ .panel-staff,
 .role-tabs input#role-trekker:checked ~ .panel-trekker {
   display: block;
+}
+
+/* ---- Hero Banner ---- */
+.hero-banner {
+  position: relative;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/static/images/hero_trek.jpg');
+  background-size: cover;
+  background-position: center;
+  border-radius: 1rem;
+  padding: 5rem 2rem;
+  margin-bottom: 2rem;
+  color: #fff;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Fallback image style for hero if background image not present */
+.hero-banner-placeholder {
+  background-color: var(--trek-green-dark);
+}
+
+.hero-banner h1 {
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.hero-banner p {
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* ---- Trek Cards ---- */
+.trek-card {
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border-radius: 0.75rem;
+  background-color: #fff;
+}
+
+.trek-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
+}
+
+.text-truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- Badges ---- */
+.badge {
+  font-weight: 600;
+  padding: 0.45em 0.8em;
+  border-radius: 30px;
+}
+
+/* ---- Detail Page Elements ---- */
+.trek-header-image {
+  height: 400px;
+  object-fit: cover;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* ---- Glassmorphic Cards (Filters/Sidebars) ---- */
+.filter-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 0.75rem;
+}
+
+/* ---- Footer ---- */
+footer {
+  background-color: #1a1e1b !important;
 }

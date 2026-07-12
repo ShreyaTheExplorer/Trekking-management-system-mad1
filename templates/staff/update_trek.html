@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Update Trek — {{ trek.name }}{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">Update: {{ trek.name }}</h2>
+  <a href="{{ url_for('staff.dashboard') }}" class="btn btn-outline-secondary">← Dashboard</a>
+</div>
+
+<div class="row g-4">
+
+  {# ── Edit form ── #}
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">{{ form.available_slots.label }}</label>
+            {{ form.available_slots(class="form-control",
+               value=trek.available_slots,
+               placeholder=trek.available_slots) }}
+            <div class="form-text">
+              Currently <strong>{{ trek.available_slots }}</strong> of
+              <strong>{{ trek.total_slots }}</strong> slots available.
+              Cannot go below the number of active bookings.
+            </div>
+            {% for e in form.available_slots.errors %}
+              <div class="text-danger small">{{ e }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">{{ form.status.label }}</label>
+            {{ form.status(class="form-select") }}
+            <div class="form-text">
+              Open accepts new bookings. Closed stops new bookings (use when trek has started).
+            </div>
+          </div>
+
+          {{ form.submit(class="btn btn-success px-4") }}
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {# ── Trek info sidebar ── #}
+  <div class="col-md-7">
+    <div class="card bg-light border-0">
+      <div class="card-body">
+        <h6 class="card-title text-muted mb-3">Trek Summary</h6>
+        <table class="table table-sm table-borderless mb-0 small">
+          <tr><th style="width:40%">Location</th><td>{{ trek.location }}</td></tr>
+          <tr><th>Difficulty</th><td>{{ trek.difficulty }}</td></tr>
+          <tr><th>Start Date</th><td>{{ trek.start_date.strftime('%d %b %Y') }}</td></tr>
+          <tr><th>End Date</th><td>{{ trek.end_date.strftime('%d %b %Y') }}</td></tr>
+          <tr><th>Duration</th><td>{{ trek.duration_days }} days</td></tr>
+          <tr><th>Total Slots</th><td>{{ trek.total_slots }}</td></tr>
+          <tr><th>Available Slots</th><td>{{ trek.available_slots }}</td></tr>
+          <tr><th>Price</th><td>{% if trek.price %}₹{{ "%.0f"|format(trek.price) }}{% else %}Free{% endif %}</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

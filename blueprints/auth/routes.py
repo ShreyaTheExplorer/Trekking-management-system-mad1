@@ -2,13 +2,14 @@
 blueprints/auth/routes.py
 """
 
-from flask import render_template, redirect, url_for, flash
+from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 
 from . import bp
 from .forms import RegisterForm, LoginForm, CheckStatusForm
-from extensions import db
-from models import User, StaffProfile, authenticate_staff
+from extensions import db, oauth
+from models import User, StaffProfile, authenticate_staff, get_or_create_google_user
+
 
 
 @bp.route("/register", methods=["GET", "POST"])
@@ -95,7 +96,7 @@ def login():
                 return render_template("auth/login.html", form=form)
             login_user(user)
             flash(f"Welcome back, {user.full_name}!", "success")
-            return redirect(url_for("index"))  # staff.dashboard arrives in Phase 6
+            return redirect(url_for("staff.dashboard"))  # staff.dashboard arrives in Phase 6
 
         # role == "trekker"
         user = User.query.filter_by(username=form.trekker_username.data, role="trekker").first()
@@ -140,3 +141,48 @@ def check_status():
             }
 
     return render_template("auth/check_status.html", form=form, result=result)
+
+
+@bp.route("/google/login")
+def google_login():
+    if not hasattr(oauth, "google"):
+        flash("Google Login is not configured on this server.", "warning")
+        return redirect(url_for("auth.login"))
+    redirect_uri = url_for("auth.google_callback", _external=True)
+    return oauth.google.authorize_redirect(redirect_uri)
+
+
+@bp.route("/google/callback")
+def google_callback():
+    if not hasattr(oauth, "google"):
+        flash("Google Login is not configured on this server.", "warning")
+        return redirect(url_for("auth.login"))
+    try:
+        token = oauth.google.authorize_access_token()
+        userinfo = token.get('userinfo')
+        if not userinfo:
+            # Fallback
+            resp = oauth.google.get('https://openidconnect.googleapis.com/v1/userinfo')
+            userinfo = resp.json()
+
+        google_id = userinfo.get('sub')
+        email = userinfo.get('email')
+        full_name = userinfo.get('name') or email.split('@')[0]
+        profile_pic_url = userinfo.get('picture')
+
+        if not google_id or not email:
+            flash("Failed to retrieve user information from Google.", "danger")
+            return redirect(url_for("auth.login"))
+
+        user = get_or_create_google_user(google_id, email, full_name, profile_pic_url)
+
+        if user.is_blacklisted:
+            flash("This account has been blacklisted.", "danger")
+            return redirect(url_for("auth.login"))
+
+        login_user(user)
+        flash(f"Welcome back, {user.full_name}! (Signed in with Google)", "success")
+        return redirect(url_for("index"))
+    except Exception as e:
+        flash(f"Google authentication failed: {str(e)}", "danger")
+        return redirect(url_for("auth.login"))

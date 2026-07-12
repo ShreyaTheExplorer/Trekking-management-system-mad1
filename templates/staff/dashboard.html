@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Staff Dashboard{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">My Assigned Treks</h2>
+  <span class="text-muted small">
+    Staff ID: <code>{{ current_user.staff_profile.staff_id }}</code>
+    &nbsp;·&nbsp; {{ current_user.full_name }}
+  </span>
+</div>
+
+{% if trek_data %}
+<div class="row g-4">
+  {% for item in trek_data %}
+  {% set trek = item.trek %}
+
+  {# Pre-compute badge class to avoid nested-quote issues in attributes #}
+  {% if trek.status == 'Open' %}
+    {% set status_badge = 'bg-success' %}
+    {% set status_label = 'Open' %}
+  {% elif trek.status == 'Closed' %}
+    {% set status_badge = 'bg-warning text-dark' %}
+    {% set status_label = 'Started / Closed' %}
+  {% elif trek.status == 'Completed' %}
+    {% set status_badge = 'bg-dark' %}
+    {% set status_label = 'Completed' %}
+  {% else %}
+    {% set status_badge = 'bg-secondary' %}
+    {% set status_label = trek.status %}
+  {% endif %}
+
+  {% if trek.difficulty == 'Easy' %}
+    {% set diff_badge = 'bg-success' %}
+  {% elif trek.difficulty == 'Moderate' %}
+    {% set diff_badge = 'bg-warning text-dark' %}
+  {% else %}
+    {% set diff_badge = 'bg-danger' %}
+  {% endif %}
+
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>{{ trek.name }}</strong>
+        <span class="badge {{ status_badge }}">{{ status_label }}</span>
+      </div>
+      <div class="card-body">
+        <div class="row g-2 small mb-3">
+          <div class="col-6">
+            <span class="text-muted">Location:</span> {{ trek.location }}
+          </div>
+          <div class="col-6">
+            <span class="text-muted">Difficulty:</span>
+            <span class="badge {{ diff_badge }}">{{ trek.difficulty }}</span>
+          </div>
+          <div class="col-6">
+            <span class="text-muted">Start:</span> {{ trek.start_date.strftime('%d %b %Y') }}
+          </div>
+          <div class="col-6">
+            <span class="text-muted">End:</span> {{ trek.end_date.strftime('%d %b %Y') }}
+          </div>
+          <div class="col-6">
+            <span class="text-muted">Slots:</span>
+            <strong>{{ trek.available_slots }}/{{ trek.total_slots }}</strong> available
+          </div>
+          <div class="col-6">
+            <span class="text-muted">Booked participants:</span>
+            <strong>{{ item.booked_count }}</strong>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ url_for('staff.participants', trek_id=trek.id) }}"
+             class="btn btn-sm btn-outline-primary">
+            Participants ({{ item.booked_count }})
+          </a>
+
+          {% if trek.status in ['Open', 'Closed'] %}
+          <a href="{{ url_for('staff.update_trek', trek_id=trek.id) }}"
+             class="btn btn-sm btn-outline-secondary">
+            Update Slots / Status
+          </a>
+          {% endif %}
+
+          {% if trek.status in ['Open', 'Approved'] %}
+          <form method="POST"
+                action="{{ url_for('staff.mark_started', trek_id=trek.id) }}"
+                class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm btn-warning">Mark as Started</button>
+          </form>
+          {% endif %}
+
+          {% if trek.status not in ['Completed'] %}
+          <form method="POST"
+                action="{{ url_for('staff.mark_completed', trek_id=trek.id) }}"
+                class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm btn-dark">Mark as Completed</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="text-center py-5 text-muted">
+  <p class="fs-5">No treks assigned to you yet.</p>
+  <p class="small">The admin will assign you to a trek. Check back after logging in again.</p>
+</div>
+{% endif %}
+
+{% endblock %}

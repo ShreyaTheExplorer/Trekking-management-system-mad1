@@ -3,40 +3,84 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Trekking Management{% endblock %}</title>
+  <title>{% block title %}TrekManager — Discover Your Next Adventure{% endblock %}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success py-3 shadow-sm">
     <div class="container">
-      <a class="navbar-brand" href="{{ url_for('index') }}">TrekManager</a>
+      <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('index') }}">
+        <i class="bi bi-compass-fill me-2 fs-4"></i>TrekManager
+      </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navMenu">
-        <ul class="navbar-nav ms-auto">
+        <ul class="navbar-nav ms-auto align-items-center">
           {% if current_user.is_authenticated %}
+
             {% if current_user.is_admin %}
-              <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a></li>
+              <li class="nav-item"><a class="nav-link fw-medium" href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+              <li class="nav-item"><a class="nav-link fw-medium" href="{{ url_for('admin.list_treks') }}">Treks</a></li>
+              <li class="nav-item">
+                <a class="nav-link fw-medium" href="{{ url_for('admin.pending_staff') }}">
+                  Pending
+                </a>
+              </li>
+              <li class="nav-item"><a class="nav-link fw-medium" href="{{ url_for('admin.list_staff') }}">Staff</a></li>
+              <li class="nav-item"><a class="nav-link fw-medium" href="{{ url_for('admin.list_users') }}">Users</a></li>
             {% endif %}
-            <li class="nav-item"><span class="nav-link text-light">Hi, {{ current_user.full_name }}</span></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
+
+            {% if current_user.is_staff %}
+              <li class="nav-item"><a class="nav-link fw-medium" href="{{ url_for('staff.dashboard') }}">My Treks</a></li>
+            {% endif %}
+
+            {% if current_user.is_trekker %}
+              <li class="nav-item"><a class="nav-link fw-medium" href="{{ url_for('user.browse_treks') }}">Browse Treks</a></li>
+              <li class="nav-item"><a class="nav-link fw-medium" href="{{ url_for('user.my_bookings') }}">My Bookings</a></li>
+              <li class="nav-item"><a class="nav-link fw-medium" href="{{ url_for('user.profile') }}">Profile</a></li>
+            {% endif %}
+
+            <li class="nav-item ms-lg-3 d-flex align-items-center bg-success-dark px-3 py-1.5 rounded-pill mt-2 mt-lg-0">
+              {% if current_user.profile_pic_url %}
+                <img src="{{ current_user.profile_pic_url }}" class="rounded-circle me-2 border border-2 border-white shadow-sm" style="width: 28px; height: 28px; object-fit: cover;" alt="Profile">
+              {% endif %}
+              <span class="text-light fw-semibold small">Hi, {{ current_user.full_name.split(' ')[0] }}</span>
+            </li>
+            <li class="nav-item ms-lg-2"><a class="nav-link text-warning fw-semibold" href="{{ url_for('auth.logout') }}">Logout</a></li>
+
           {% else %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.register') }}">Register</a></li>
+            <li class="nav-item"><a class="nav-link fw-medium" href="{{ url_for('auth.login') }}">Login</a></li>
+            <li class="nav-item ms-lg-2"><a class="btn btn-warning btn-sm text-dark px-3 rounded-pill fw-semibold shadow-sm" href="{{ url_for('auth.register') }}">Register</a></li>
           {% endif %}
         </ul>
       </div>
     </div>
   </nav>
 
-  <main class="container py-4">
+  <main class="container py-4 min-vh-100">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
+          {% set bootstrap_cat = 'danger' if category == 'error' else category %}
+          <div class="alert alert-{{ bootstrap_cat }} alert-dismissible fade show shadow-sm rounded-3 border-0 py-3 mb-4" role="alert">
+            <div class="d-flex align-items-center">
+              {% if bootstrap_cat == 'success' %}
+                <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+              {% elif bootstrap_cat == 'danger' %}
+                <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+              {% else %}
+                <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+              {% endif %}
+              <div>
+                {{ message }}
+              </div>
+            </div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
         {% endfor %}
@@ -46,12 +90,23 @@
     {% block content %}{% endblock %}
   </main>
 
-  <footer class="text-center text-muted py-3 border-top mt-4">
-    <small>&copy; 2026 TrekManager</small>
+  <footer class="bg-dark text-light py-5 mt-5 border-top border-secondary">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+          <h5 class="fw-bold text-success mb-2"><i class="bi bi-compass-fill me-2"></i>TrekManager</h5>
+          <p class="text-secondary small mb-0">Connecting adventurers to pristine mountain trails and professional guides.</p>
+        </div>
+        <div class="col-md-6 text-center text-md-end">
+          <small class="text-secondary">&copy; 2026 TrekManager. All rights reserved.</small>
+        </div>
+      </div>
+    </div>
   </footer>
 
-  <!-- Bootstrap's own bundle, used only for its built-in navbar-collapse/alert-dismiss
-       chrome. Every core flow (auth, booking, filters, etc.) works fully without it. -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
+

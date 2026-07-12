@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Assign Staff — {{ trek.name }}{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">Assign Staff to Trek</h2>
+  <a href="{{ url_for('admin.list_treks') }}" class="btn btn-outline-secondary">← Back to Treks</a>
+</div>
+
+{# Trek summary card #}
+<div class="card mb-4">
+  <div class="card-body">
+    <h5 class="card-title">{{ trek.name }}</h5>
+    <div class="row g-2 text-sm">
+      <div class="col-sm-3"><span class="text-muted">Location:</span> {{ trek.location }}</div>
+      <div class="col-sm-3"><span class="text-muted">Dates:</span> {{ trek.start_date }} → {{ trek.end_date }}</div>
+      <div class="col-sm-3"><span class="text-muted">Status:</span>
+        <span class="badge bg-{{ 'success' if trek.status=='Open' else 'secondary' if trek.status=='Pending' else 'info' if trek.status=='Approved' else 'warning text-dark' if trek.status=='Closed' else 'dark' }}">
+          {{ trek.status }}
+        </span>
+      </div>
+      <div class="col-sm-3"><span class="text-muted">Current staff:</span>
+        {% if trek.assigned_staff %}
+          {{ trek.assigned_staff.user.full_name }}
+        {% else %}
+          <em class="text-muted">None</em>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if eligible %}
+  <div class="card" style="max-width: 480px">
+    <div class="card-body">
+      <form method="POST" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">{{ form.staff_profile_id.label }}</label>
+          {{ form.staff_profile_id(class="form-select") }}
+          <div class="form-text">Choose "Unassign" to remove the current staff assignment.</div>
+        </div>
+        {{ form.submit(class="btn btn-success") }}
+        <a href="{{ url_for('admin.list_treks') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+      </form>
+    </div>
+  </div>
+{% else %}
+  <div class="alert alert-warning">
+    No approved, active staff members available for assignment.
+    <a href="{{ url_for('admin.pending_staff') }}" class="alert-link">Approve staff first.</a>
+  </div>
+{% endif %}
+
+{% endblock %}
+

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Trek' if trek else 'New Trek' }}{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>{{ 'Edit Trek: ' + trek.name if trek else 'New Trek' }}</h2>
+  <a href="{{ url_for('admin.list_treks') }}" class="btn btn-outline-secondary">← Back to Treks</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="POST" novalidate>
+      {{ form.hidden_tag() }}
+
+      <div class="row g-3">
+
+        {# Column 1 #}
+        <div class="col-md-6">
+          <label class="form-label">{{ form.name.label }}</label>
+          {{ form.name(class="form-control") }}
+          {% for e in form.name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.location.label }}</label>
+          {{ form.location(class="form-control", placeholder="e.g. Uttarakhand, Himachal Pradesh") }}
+          {% for e in form.location.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">{{ form.difficulty.label }}</label>
+          {{ form.difficulty(class="form-select") }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.duration_days.label }}</label>
+          {{ form.duration_days(class="form-control", placeholder="e.g. 6") }}
+          {% for e in form.duration_days.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.price.label }}</label>
+          {{ form.price(class="form-control", placeholder="0") }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">{{ form.total_slots.label }}</label>
+          {{ form.total_slots(class="form-control") }}
+          {% for e in form.total_slots.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">
+            {{ form.available_slots.label }}
+            {% if not trek %}<span class="text-muted small">(auto = total on create)</span>{% endif %}
+          </label>
+          {{ form.available_slots(class="form-control", readonly=("" if trek else "readonly")) }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">{{ form.status.label }}</label>
+          {{ form.status(class="form-select") }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">{{ form.start_date.label }}</label>
+          {{ form.start_date(class="form-control", type="date") }}
+          {% for e in form.start_date.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.end_date.label }}</label>
+          {{ form.end_date(class="form-control", type="date") }}
+          {% for e in form.end_date.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">{{ form.month.label }}</label>
+          {{ form.month(class="form-select") }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.season.label }}</label>
+          {{ form.season(class="form-select") }}
+        </div>
+
+        <div class="col-md-12">
+          <label class="form-label">{{ form.cover_image.label }}</label>
+          {{ form.cover_image(class="form-control", placeholder="static/images/myfile.jpg  or  https://...") }}
+          <div class="form-text">
+            Relative path inside <code>static/</code> or a full URL. Leave blank to use a placeholder.
+          </div>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">{{ form.description.label }}</label>
+          {{ form.description(class="form-control", rows="4", placeholder="Describe the trek, highlights, what to expect...") }}
+        </div>
+
+        <div class="col-12 mt-2">
+          {{ form.submit(class="btn btn-success px-4") }}
+          <a href="{{ url_for('admin.list_treks') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+        </div>
+
+      </div>{# /row #}
+    </form>
+  </div>
+</div>
+{% endblock %}

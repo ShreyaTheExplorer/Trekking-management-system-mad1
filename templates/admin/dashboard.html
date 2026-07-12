@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">Admin Dashboard</h2>
+  <span class="text-muted">Welcome, {{ current_user.full_name }}</span>
+</div>
+
+{# ── Stat cards row 1 ── #}
+<div class="row g-3 mb-3">
+  <div class="col-sm-6 col-lg-3">
+    <div class="card text-white bg-success h-100">
+      <div class="card-body">
+        <div class="fs-1 fw-bold">{{ stats.total_treks }}</div>
+        <div>Total Treks</div>
+        <div class="small mt-1">{{ stats.open_treks }} currently Open</div>
+      </div>
+      <div class="card-footer"><a href="{{ url_for('admin.list_treks') }}" class="text-white text-decoration-none small">View all →</a></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card text-white bg-primary h-100">
+      <div class="card-body">
+        <div class="fs-1 fw-bold">{{ stats.total_trekkers }}</div>
+        <div>Registered Trekkers</div>
+      </div>
+      <div class="card-footer"><a href="{{ url_for('admin.list_users') }}" class="text-white text-decoration-none small">View all →</a></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card text-white bg-info h-100">
+      <div class="card-body">
+        <div class="fs-1 fw-bold">{{ stats.total_staff }}</div>
+        <div>Trek Staff</div>
+        {% if stats.pending_staff > 0 %}
+          <div class="small mt-1">⚠ {{ stats.pending_staff }} pending approval</div>
+        {% endif %}
+      </div>
+      <div class="card-footer"><a href="{{ url_for('admin.list_staff') }}" class="text-white text-decoration-none small">View all →</a></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card text-white bg-secondary h-100">
+      <div class="card-body">
+        <div class="fs-1 fw-bold">{{ stats.total_bookings }}</div>
+        <div>Total Bookings</div>
+        <div class="small mt-1">{{ stats.active_bookings }} active</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Pending approvals call-out ── #}
+{% if stats.pending_staff > 0 %}
+<div class="alert alert-warning d-flex justify-content-between align-items-center">
+  <span>⚠ <strong>{{ stats.pending_staff }}</strong> staff registration(s) waiting for your approval.</span>
+  <a href="{{ url_for('admin.pending_staff') }}" class="btn btn-warning btn-sm">Review now</a>
+</div>
+{% endif %}
+
+<div class="row g-4 mt-1">
+  {# ── Recent treks ── #}
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between">
+        <strong>Recent Treks</strong>
+        <a href="{{ url_for('admin.list_treks') }}" class="small">View all</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+          <thead class="table-light">
+            <tr><th>Name</th><th>Difficulty</th><th>Slots</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% for t in recent_treks %}
+            <tr>
+              <td>{{ t.name }}</td>
+              <td>
+                <span class="badge bg-{{ 'success' if t.difficulty=='Easy' else 'warning text-dark' if t.difficulty=='Moderate' else 'danger' }}">
+                  {{ t.difficulty }}
+                </span>
+              </td>
+              <td>{{ t.available_slots }}/{{ t.total_slots }}</td>
+              <td>
+                <span class="badge bg-{{ 'success' if t.status=='Open' else 'secondary' if t.status=='Pending' else 'info' if t.status=='Approved' else 'warning text-dark' if t.status=='Closed' else 'dark' }}">
+                  {{ t.status }}
+                </span>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-muted text-center py-3">No treks yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {# ── Recent bookings ── #}
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header"><strong>Recent Bookings</strong></div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+          <thead class="table-light">
+            <tr><th>Trekker</th><th>Trek</th><th>People</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% for b in recent_bookings %}
+            <tr>
+              <td>{{ b.user.full_name }}</td>
+              <td>{{ b.trek.name }}</td>
+              <td>{{ b.num_people }}</td>
+              <td>
+                <span class="badge bg-{{ 'success' if b.status=='Booked' else 'secondary' if b.status=='Cancelled' else 'dark' }}">
+                  {{ b.status }}
+                </span>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-muted text-center py-3">No bookings yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
