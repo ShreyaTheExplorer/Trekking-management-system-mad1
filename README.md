@@ -19,7 +19,7 @@ A Python Flask-based web application for managing adventure trails, trek booking
 ## Features
 
 ### 1. Trekkers
-- **Register and Log In**: Create local email/password accounts or sign in via Google OAuth.
+- **Register and Log In**: Create local email/password accounts.
 - **Browse Open Treks**: Filter treks by location, difficulty (Easy, Moderate, Hard), month, or season.
 - **Smart Recommendations**: View personalized recommendations under "Suggested for you" based on previous bookings (same difficulty or location).
 - **Trek Details & Booking**: View detailed description, cover image, slots, price, and book a trek.
