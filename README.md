@@ -16,10 +16,8 @@ The Trekking Management System is a centralized platform designed to solve these
 The application is structured as a modular, MVC-pattern Python Flask web application. Key design decisions include:
 - **Modular Architecture (Flask Blueprints)**: Segmented code into role-based controllers (`admin`, `staff`, `user`, and `auth`) to keep code clean, readable, and highly maintainable.
 - **Robust Relational Schemas**: Leveraged SQLAlchemy ORM with SQLite, utilizing database constraints (CheckConstraints, Foreign Keys) to enforce slot limitations (`available_slots <= total_slots`) and role definitions natively at the storage layer.
-- **Role-Based Authorization Decorators**: Created custom decorators (`admin_required`, `staff_required`, `trekker_required`)
--  wrapping Flask-Login's state validation to prevent cross-role unauthorized access.
-- **Transaction-Safe Operations**: Wrapped booking creation and cancellation in dedicated transaction helper methods
-- into atomically check availability, update available slots, and commit the state.
+- **Role-Based Authorization Decorators**: Created custom decorators (`admin_required`, `staff_required`, `trekker_required`)wrapping Flask-Login's state validation to prevent cross-role unauthorized access.
+- **Transaction-Safe Operations**: Wrapped booking creation and cancellation in dedicated transaction helper methodsinto atomically check availability, update available slots, and commit the state.
 
 ---
 
@@ -34,85 +32,6 @@ The project utilizes the following tools and libraries:
 
 ---
 
-## 4. Entity-Relationship (ER) Diagram
-Below is the visual relationship structure of the database tables (rendered using Mermaid syntax):
-
-```mermaid
-erDiagram
-    User ||--|| StaffProfile : "has (optional)"
-    User ||--o{ Booking : "makes"
-    User ||--o{ Trek : "creates (Admin)"
-    StaffProfile ||--o{ Trek : "guided_by"
-    Trek ||--o{ Booking : "receives"
-    Trek ||--o{ TrekImage : "has_gallery"
-
-    User {
-        int id PK
-        string username UNIQUE
-        string email UNIQUE
-        string password_hash
-        string full_name
-        string phone
-        string role "admin/staff/trekker"
-        string auth_provider "local/google"
-        string google_id UNIQUE
-        string profile_pic_url
-        boolean is_blacklisted
-        datetime created_at
-    }
-
-    StaffProfile {
-        int id PK
-        int user_id FK
-        text bio
-        int experience_years
-        string certification
-        string approval_status "pending/approved/rejected"
-        string staff_id UNIQUE
-        datetime approved_at
-        int approved_by FK
-    }
-
-    Trek {
-        int id PK
-        string name
-        string location
-        string difficulty "Easy/Moderate/Hard"
-        int duration_days
-        int total_slots
-        int available_slots
-        date start_date
-        date end_date
-        string month
-        string season
-        float price
-        text description
-        string cover_image
-        string status "Pending/Approved/Open/Closed/Completed"
-        int assigned_staff_id FK
-        int created_by FK
-        datetime created_at
-    }
-
-    TrekImage {
-        int id PK
-        int trek_id FK
-        string image_url
-        string caption
-    }
-
-    Booking {
-        int id PK
-        int user_id FK
-        int trek_id FK
-        datetime booking_date
-        int num_people
-        string status "Booked/Cancelled/Completed"
-        datetime created_at
-    }
-```
-
----
 
 ## 5. API Resource Endpoints
 
@@ -167,3 +86,5 @@ erDiagram
 | `POST` | `/bookings/<booking_id>/cancel` | Cancel active booking and release slot | Trekker |
 | `GET`, `POST` | `/profile` | View and edit profile details | Trekker |
 | `GET` | `/dashboard` | Redirects to `/treks` | Trekker |
+
+Thank you!
