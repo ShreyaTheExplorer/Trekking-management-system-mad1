@@ -1,90 +1,131 @@
-# Trekking-management-system-mad1
-Python Flask based application for treks booking for trekkers and management by authorities.
+# Trekking Management System
 
-## 1. Problem Statement
-Managing outdoor trekking operations, guide allocations, and trekker bookings manually or via fragmented tools leads to several operational challenges:
-- **Overbooking and Under-allocation**: Real-time slot management is difficult when multiple trekkers attempt to book simultaneously, causing either overbooking or wasted capacity.
-- **Unverified/Uncoordinated Staff**: Coordinating guide assignments without structured approval processes can lead to unqualified personnel guiding high-altitude treks.
-- **Roster & Blacklist Gaps**: A lack of centralized tracking makes it hard to manage active participant rosters, handle cancellations (with auto-returned slots), and enforce safety rules (such as immediately locking out blacklisted/misbehaving users).
-- **Poor User Experience**: Trekkers lack personalized recommendations based on past locations or difficulty preferences, making it harder to find suitable treks.
+A Python Flask-based web application for managing adventure trails, trek bookings, guide assignments, and participant rosters. Built using Flask Blueprints, WTForms, SQLAlchemy, and SQLite.
 
-The Trekking Management System is a centralized platform designed to solve these issues, enabling seamless administration, secure booking control, and real-time guide workflows.
-
----
-
-## 2. Approach
-The application is structured as a modular, MVC-pattern Python Flask web application. Key design decisions include:
-- **Modular Architecture (Flask Blueprints)**: Segmented code into role-based controllers (`admin`, `staff`, `user`, and `auth`) to keep code clean, readable, and highly maintainable.
-- **Robust Relational Schemas**: Leveraged SQLAlchemy ORM with SQLite, utilizing database constraints (CheckConstraints, Foreign Keys) to enforce slot limitations (`available_slots <= total_slots`) and role definitions natively at the storage layer.
-- **Role-Based Authorization Decorators**: Created custom decorators (`admin_required`, `staff_required`, `trekker_required`)wrapping Flask-Login's state validation to prevent cross-role unauthorized access.
-- **Transaction-Safe Operations**: Wrapped booking creation and cancellation in dedicated transaction helper methodsinto atomically check availability, update available slots, and commit the state.
+## Table of Contents
+- [Features](#features)
+  - [Trekkers](#1-trekkers)
+  - [Trek Staff / Guides](#2-trek-staff--guides)
+  - [System Administrators](#3-system-administrators)
+- [Project Tech Stack](#project-tech-stack)
+- [Directory Structure](#directory-structure)
+- [Installation and Setup](#installation-and-setup)
+- [Seeding Sample Data](#seeding-sample-data)
+- [Running the Application](#running-the-application)
+- [Running the Test Suite](#running-the-test-suite)
 
 ---
 
-## 3. Frameworks and Libraries
-The project utilizes the following tools and libraries:
-- **Flask (v3.1.3)**: A lightweight, WSGI-compliant micro web framework providing routing, sessions, and request handling.
-- **SQLAlchemy (v2.0.51) & Flask-SQLAlchemy (v3.1.1)**: ORM library mapping database tables to Python classes and facilitating safe SQL execution.
-- **WTForms (v3.2.2) & Flask-WTF (v1.3.0)**: Handles secure form generation, fields rendering, client/server-side validation, and CSRF token protection.
-- **Flask-Login (v0.6.3)**: Manages authenticated user session states, logins, logouts, and user loading from the database.
-- **Authlib (v1.7.2)**: Integrates Authlib OAuth client logic to enable secure, standard Google OAuth 2.0 Sign-In.
-- **Werkzeug (v3.1.8)**: Flask’s underlying WSGI utility, utilized specifically for secure cryptographic password hashing (`generate_password_hash` and `check_password_hash`).
+## Features
+
+### 1. Trekkers
+- **Register and Log In**: Create local email/password accounts or sign in via Google OAuth.
+- **Browse Open Treks**: Filter treks by location, difficulty (Easy, Moderate, Hard), month, or season.
+- **Smart Recommendations**: View personalized recommendations under "Suggested for you" based on previous bookings (same difficulty or location).
+- **Trek Details & Booking**: View detailed description, cover image, slots, price, and book a trek.
+- **Booking Roster & Cancellations**: Manage active bookings and cancel them, which automatically returns slots back to the trek pool.
+
+### 2. Trek Staff / Guides
+- **Staff Registration**: Register with a profile containing experience years, certification, and bio. Requires admin approval before login.
+- **Assigned Dashboard**: View all assigned treks and current participant counts.
+- **Slot and Status Management**: Edit available slots (never lower than the number of already booked people) and status.
+- **Trek Life Cycle Actions**: Mark a trek as started (**Closed** for bookings) or **Completed** (which automatically graduates all participants' booking statuses to Completed).
+- **Roster view**: Check full participant profiles, contact information, and booking states.
+
+### 3. System Administrators
+- **Core Statistics**: View overall metrics (total treks, open treks, active bookings, pending staff).
+- **Trek Management (CRUD)**: Create, edit, and delete treks (including managing slots and assigning approved staff guides).
+- **Staff Approvals**: Approve or reject pending staff registrations. Approving a guide automatically issues a unique, sequential Staff ID (e.g., `STF-00001`) used for authentication.
+- **Blacklist Control**: Blacklist or reinstate trekkers or staff members immediately to lock them out of the system.
 
 ---
 
+## Project Tech Stack
+- **Backend Framework**: Flask 3.1.3
+- **ORM / Database**: SQLAlchemy 2.0.51 & Flask-SQLAlchemy 3.1.1 (SQLite)
+- **Forms and Validation**: WTForms 3.2.2 & Flask-WTF 1.3.0
+- **User Authentication**: Flask-Login 0.6.3
+- **OAuth Authentication**: Authlib 1.7.2
+- **Password Security**: Werkzeug 3.1.8 (bcrypt/scrypt hashing)
 
-## 5. API Resource Endpoints
+---
 
-### Root / Routing Entry
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| `GET` | `/` | Redirects to role-specific dashboard based on session role | Public / Logged In |
+## Directory Structure
+```
+Trek_Mnmt_app/
+├── app.py                  # Application factory configuration & CLI commands
+├── extensions.py           # Flask extension initializations (db, login_manager, oauth)
+├── config.py               # Application configuration parameters & environment settings
+├── models.py               # Database schemas and business helper functions
+├── utils.py                # Authorization decorators (admin_required, staff_required, etc.)
+├── seed.py                 # Idempotent admin user initialization script
+├── seed_demo_data.py       # Full database seeder (seeds Admin, Trekkers, Staff, Treks, and Bookings)
+├── test_flows.py           # Unit tests checking end-to-end user journeys
+├── requirements.txt        # Python dependency manifest
+├── static/                 # Styles, images, and Javascript assets
+│   ├── css/
+│   │   └── style.css
+│   └── images/
+└── templates/              # HTML Templates (Jinja2)
+    ├── admin/              # Admin pages
+    ├── auth/               # Login, register, and status checks
+    ├── staff/              # Staff portal
+    ├── user/               # Trekker pages
+    ├── macros/             # Reusable UI macros
+    └── base.html           # Master layout template
+```
 
-### Auth Blueprint (`/auth` prefix)
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| `GET`, `POST` | `/auth/register` | User/Staff registration form & processing | Public |
-| `GET`, `POST` | `/auth/login` | Tabbed login form (Trekker, Staff, Admin) | Public |
-| `GET` | `/auth/logout` | Ends active session & logs out | Logged In |
-| `GET`, `POST` | `/auth/staff/check-status` | Check if staff application is approved/pending | Public |
-| `GET` | `/auth/google/login` | Initiates external Google OAuth flow | Public |
-| `GET` | `/auth/google/callback` | Google OAuth callback handler | Public |
+---
 
-### Admin Blueprint (`/admin` prefix)
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| `GET` | `/admin/dashboard` | Main admin panel with stats counters & activity logs | Admin |
-| `GET` | `/admin/treks` | List all treks | Admin |
-| `GET`, `POST` | `/admin/treks/new` | Create a new trek (includes date validation) | Admin |
-| `GET`, `POST` | `/admin/treks/<trek_id>/edit` | Edit a trek (includes slot validation) | Admin |
-| `POST` | `/admin/treks/<trek_id>/delete` | Delete a trek | Admin |
-| `GET`, `POST` | `/admin/treks/<trek_id>/assign` | Assign/Unassign an approved guide to a trek | Admin |
-| `GET` | `/admin/staff/pending` | List pending staff registrations | Admin |
-| `POST` | `/admin/staff/<profile_id>/approve` | Approve guide (generates sequential Staff ID) | Admin |
-| `POST` | `/admin/staff/<profile_id>/reject` | Reject pending guide application | Admin |
-| `GET` | `/admin/staff` | Search and manage all staff members | Admin |
-| `POST` | `/admin/staff/<user_id>/blacklist` | Toggle blacklist status of a guide | Admin |
-| `GET` | `/admin/users` | Search and view all registered trekkers | Admin |
-| `POST` | `/admin/users/<user_id>/blacklist` | Toggle blacklist status of a trekker | Admin |
+## Installation and Setup
 
-### Staff Blueprint (`/staff` prefix)
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| `GET` | `/staff/dashboard` | List assigned treks and booking statistics | Approved Staff |
-| `GET`, `POST` | `/staff/treks/<trek_id>/update` | Edit available slots and trek state | Approved Staff |
-| `GET` | `/staff/treks/<trek_id>/participants` | View trek's passenger manifest & status | Approved Staff |
-| `POST` | `/staff/treks/<trek_id>/mark-started`| Closes bookings & sets status to Closed | Approved Staff |
-| `POST` | `/staff/treks/<trek_id>/mark-completed`| Sets trek to Completed & cascades to bookings | Approved Staff |
+### Prerequisites
+- Python 3.10+ installed on your system.
 
-### User / Trekker Blueprint (`/` prefix)
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| `GET` | `/treks` | Filter/search open treks; view suggestions | Trekker |
-| `GET` | `/treks/<trek_id>` | Show trek descriptions, price, status, and slots | Trekker |
-| `POST` | `/treks/<trek_id>/book` | Confirm 1-slot booking for the selected trek | Trekker |
-| `GET` | `/bookings` | View user's active & completed booking history | Trekker |
-| `POST` | `/bookings/<booking_id>/cancel` | Cancel active booking and release slot | Trekker |
-| `GET`, `POST` | `/profile` | View and edit profile details | Trekker |
-| `GET` | `/dashboard` | Redirects to `/treks` | Trekker |
+### Steps
+1. **Clone or Navigate to the Directory**:
+   ```bash
+   cd c:\Users\VICTUS\OneDrive\Desktop\Trek_Mnmt_app
+   ```
 
-Thank you!
+2. **Create and Activate a Virtual Environment**:
+   ```bash
+   # Windows PowerShell
+   python -m venv venv
+   .\venv\Scripts\activate
+   ```
+
+3. **Install Dependencies**:
+   ```bash
+   .\venv\Scripts\pip.exe install -r requirements.txt
+   ```
+
+---
+
+## Seeding Sample Data
+
+To set up a fresh database with realistic sample treks, staff, trekkers, and bookings, execute the seeder script:
+```bash
+.\venv\Scripts\python.exe seed_demo_data.py
+```
+This script will initialize `app.db` in the `instance` folder, seed 1 admin, 3 staff guides, 3 trekkers, 8 treks across different seasons, and several sample bookings.
+
+---
+
+## Running the Application
+
+To run the Flask development server locally:
+```bash
+.\venv\Scripts\python.exe app.py
+```
+The server will start at `http://127.0.0.1:5000/`. Open this URL in your web browser.
+
+---
+
+## Running the Test Suite
+
+To run the end-to-end integration test suite and verify system rules:
+```bash
+.\venv\Scripts\python.exe -m unittest test_flows.py
+```
+This validates filters, overbooking prevention, booking cancellations, and blacklist validation constraints.
