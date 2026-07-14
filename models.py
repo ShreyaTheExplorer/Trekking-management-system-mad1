@@ -1,22 +1,4 @@
-"""
-models.py — SQLAlchemy models for the Trekking Management Application.
-
-Usage in app.py (application factory):
-
-    from extensions import db
-    from models import User, StaffProfile, Trek, Booking, TrekImage
-
-    def create_app():
-        app = Flask(__name__)
-        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///trekking.db"
-        db.init_app(app)
-        with app.app_context():
-            db.create_all()
-            seed_admin()   # see bottom of this file
-        return app
-"""
-
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from extensions import db  # db = SQLAlchemy() defined in extensions.py
@@ -49,7 +31,7 @@ class User(db.Model, UserMixin):
     profile_pic_url = db.Column(db.String(255), nullable=True)
 
     is_blacklisted = db.Column(db.Boolean, default=False, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # relationships
     staff_profile = db.relationship(
@@ -171,7 +153,7 @@ class Trek(db.Model):
 
     assigned_staff_id = db.Column(db.Integer, db.ForeignKey("staff_profiles.id"), nullable=True)
     created_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # relationships
     assigned_staff = db.relationship("StaffProfile", back_populates="treks_assigned")
@@ -223,12 +205,12 @@ class Booking(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     trek_id = db.Column(db.Integer, db.ForeignKey("treks.id"), nullable=False)
 
-    booking_date = db.Column(db.DateTime, default=datetime.utcnow)
+    booking_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     num_people = db.Column(db.Integer, nullable=False, default=1)
     status = db.Column(db.String(10), nullable=False, default="Booked")
     # allowed values: Booked, Cancelled, Completed
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = db.relationship("User", back_populates="bookings")
     trek = db.relationship("Trek", back_populates="bookings")
@@ -290,7 +272,7 @@ def approve_staff(staff_profile, admin_user):
         return staff_profile  # already approved, idempotent
 
     staff_profile.approval_status = "approved"
-    staff_profile.approved_at = datetime.utcnow()
+    staff_profile.approved_at = datetime.now(timezone.utc)
     staff_profile.approved_by = admin_user.id
     db.session.flush()  # ensures staff_profile.id is populated
 

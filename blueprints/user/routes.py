@@ -109,7 +109,7 @@ def browse_treks():
 
 @bp.route("/treks/<int:trek_id>")
 def trek_detail(trek_id):
-    trek = Trek.query.get_or_404(trek_id)
+    trek = db.get_or_404(Trek, trek_id)
     # Check if this trek has already been booked by the current user (if logged in)
     has_booked = False
     if current_user.is_authenticated and current_user.is_trekker:
@@ -125,7 +125,7 @@ def trek_detail(trek_id):
 @bp.route("/treks/<int:trek_id>/book", methods=["POST"])
 @trekker_required
 def book_trek(trek_id):
-    trek = Trek.query.get_or_404(trek_id)
+    trek = db.get_or_404(Trek, trek_id)
     try:
         create_booking(user=current_user, trek=trek, num_people=1)
         flash(f"Successfully booked '{trek.name}'!", "success")
@@ -166,7 +166,7 @@ def my_bookings():
 @bp.route("/bookings/<int:booking_id>/cancel", methods=["POST"])
 @trekker_required
 def cancel_booking_route(booking_id):
-    booking = Booking.query.get_or_404(booking_id)
+    booking = db.get_or_404(Booking, booking_id)
     if booking.user_id != current_user.id:
         abort(403)
     try:

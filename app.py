@@ -1,11 +1,4 @@
-"""
-app.py — application factory.
 
-Run locally with:
-    python app.py
-or, for the CLI seed command:
-    flask --app app seed-db
-"""
 
 import click
 from flask import Flask, redirect, url_for
@@ -48,7 +41,7 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        return db.session.get(User, int(user_id))
 
     # All four blueprints, as specified.
     from blueprints.auth import bp as auth_bp
@@ -71,7 +64,7 @@ def create_app():
     @app.route("/")
     def index():
         if not current_user.is_authenticated:
-            return redirect(url_for("auth.login"))
+            return redirect(url_for("user.browse_treks"))
         if current_user.is_admin:
             return redirect(url_for("admin.dashboard"))
         if current_user.is_staff:

@@ -36,13 +36,17 @@ def dashboard():
 @bp.route("/treks/<int:trek_id>/update", methods=["GET", "POST"])
 @staff_required
 def update_trek(trek_id):
-    trek = Trek.query.get_or_404(trek_id)
+    trek = db.get_or_404(Trek, trek_id)
     if trek.assigned_staff_id != current_user.staff_profile.id:
         abort(403)
 
     form = UpdateTrekForm(obj=trek)
     if form.validate_on_submit():
         new_slots = form.available_slots.data
+        if new_slots is not None:
+            if new_slots > trek.total_slots:
+                flash(f"Available slots ({new_slots}) cannot exceed total slots ({trek.total_slots}).", "danger")
+                return render_template("staff/update_trek.html", form=form, trek=trek)
         if new_slots is not None:
             from sqlalchemy import func
             # Count total people already confirmed, not just number of records.
@@ -72,7 +76,7 @@ def update_trek(trek_id):
 @bp.route("/treks/<int:trek_id>/participants")
 @staff_required
 def participants(trek_id):
-    trek = Trek.query.get_or_404(trek_id)
+    trek = db.get_or_404(Trek, trek_id)
     if trek.assigned_staff_id != current_user.staff_profile.id:
         abort(403)
     bookings = (
@@ -89,7 +93,7 @@ def participants(trek_id):
 @bp.route("/treks/<int:trek_id>/mark-started", methods=["POST"])
 @staff_required
 def mark_started(trek_id):
-    trek = Trek.query.get_or_404(trek_id)
+    trek = db.get_or_404(Trek, trek_id)
     if trek.assigned_staff_id != current_user.staff_profile.id:
         abort(403)
     if trek.status not in ("Open", "Approved"):
@@ -104,7 +108,7 @@ def mark_started(trek_id):
 @bp.route("/treks/<int:trek_id>/mark-completed", methods=["POST"])
 @staff_required
 def mark_completed(trek_id):
-    trek = Trek.query.get_or_404(trek_id)
+    trek = db.get_or_404(Trek, trek_id)
     if trek.assigned_staff_id != current_user.staff_profile.id:
         abort(403)
     trek.status = "Completed"

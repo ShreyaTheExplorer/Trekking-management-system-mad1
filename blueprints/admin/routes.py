@@ -50,6 +50,9 @@ def list_treks():
 def new_trek():
     form = TrekForm()
     if form.validate_on_submit():
+        if form.end_date.data < form.start_date.data:
+            flash("End date cannot be before start date.", "danger")
+            return render_template("admin/trek_form.html", form=form, trek=None)
         trek = Trek(
             name=form.name.data,
             location=form.location.data,
@@ -77,9 +80,17 @@ def new_trek():
 @bp.route("/treks/<int:trek_id>/edit", methods=["GET", "POST"])
 @admin_required
 def edit_trek(trek_id):
-    trek = Trek.query.get_or_404(trek_id)
+    trek = db.get_or_404(Trek, trek_id)
     form = TrekForm(obj=trek)
     if form.validate_on_submit():
+        if form.end_date.data < form.start_date.data:
+            flash("End date cannot be before start date.", "danger")
+            return render_template("admin/trek_form.html", form=form, trek=trek)
+        total_slots = form.total_slots.data
+        available_slots = form.available_slots.data if form.available_slots.data is not None else trek.available_slots
+        if available_slots > total_slots:
+            flash("Available slots cannot exceed total slots.", "danger")
+            return render_template("admin/trek_form.html", form=form, trek=trek)
         trek.name          = form.name.data
         trek.location      = form.location.data
         trek.difficulty    = form.difficulty.data
@@ -105,7 +116,7 @@ def edit_trek(trek_id):
 @bp.route("/treks/<int:trek_id>/delete", methods=["POST"])
 @admin_required
 def delete_trek(trek_id):
-    trek = Trek.query.get_or_404(trek_id)
+    trek = db.get_or_404(Trek, trek_id)
     name = trek.name
     db.session.delete(trek)
     db.session.commit()
@@ -118,7 +129,7 @@ def delete_trek(trek_id):
 @bp.route("/treks/<int:trek_id>/assign", methods=["GET", "POST"])
 @admin_required
 def assign_staff(trek_id):
-    trek = Trek.query.get_or_404(trek_id)
+    trek = db.get_or_404(Trek, trek_id)
 
     eligible = (
         StaffProfile.query
@@ -167,7 +178,7 @@ def pending_staff():
 @bp.route("/staff/<int:profile_id>/approve", methods=["POST"])
 @admin_required
 def approve_staff_member(profile_id):
-    profile = StaffProfile.query.get_or_404(profile_id)
+    profile = db.get_or_404(StaffProfile, profile_id)
     approve_staff(profile, current_user)
     flash(
         f"Approved {profile.user.full_name}. "
@@ -180,7 +191,7 @@ def approve_staff_member(profile_id):
 @bp.route("/staff/<int:profile_id>/reject", methods=["POST"])
 @admin_required
 def reject_staff_member(profile_id):
-    profile = StaffProfile.query.get_or_404(profile_id)
+    profile = db.get_or_404(StaffProfile, profile_id)
     name = profile.user.full_name
     reject_staff(profile)
     flash(f"Registration for {name} rejected.", "warning")
@@ -209,7 +220,7 @@ def list_staff():
 @bp.route("/staff/<int:user_id>/blacklist", methods=["POST"])
 @admin_required
 def blacklist_staff(user_id):
-    user = User.query.get_or_404(user_id)
+    user = db.get_or_404(User, user_id)
     if user.role != "staff":
         abort(403)
     user.is_blacklisted = not user.is_blacklisted
@@ -241,7 +252,7 @@ def list_users():
 @bp.route("/users/<int:user_id>/blacklist", methods=["POST"])
 @admin_required
 def blacklist_user(user_id):
-    user = User.query.get_or_404(user_id)
+    user = db.get_or_404(User, user_id)
     if user.role != "trekker":
         abort(403)
     user.is_blacklisted = not user.is_blacklisted
