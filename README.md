@@ -61,7 +61,6 @@ Trek_Mnmt_app/
 ├── utils.py                # Authorization decorators (admin_required, staff_required, etc.)
 ├── seed.py                 # Idempotent admin user initialization script
 ├── seed_demo_data.py       # Full database seeder (seeds Admin, Trekkers, Staff, Treks, and Bookings)
-├── test_flows.py           # Unit tests checking end-to-end user journeys
 ├── requirements.txt        # Python dependency manifest
 ├── static/                 # Styles, images, and Javascript assets
 │   ├── css/
